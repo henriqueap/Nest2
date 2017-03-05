@@ -1,0 +1,152 @@
+use "jerimum".
+
+tipo Nuvem
+  imagem = Imagem("my_codes/jogo/img/nuvem.png")
+  var x := aleatório(0, 640)
+  var y := aleatório(0, 425)
+  muda_x(n: Inteiro)
+    se x + n > jogo.largura então x:= x - n
+    senão x:= x + n
+    fim
+  fim
+  muda_y(n: Inteiro)
+    se y + n > jogo.altura então y:= y - n
+    senão y:= y + n
+    fim
+  fim
+fim
+
+fundo = Imagem("my_codes/jogo/img/ceu.png")
+ninho = Imagem("my_codes/jogo/img/ninho.png")
+
+desenhaFase(n: Inteiro)
+  var x = n * (-640)
+  var telas = Lista(1, fundo)
+  para i de 1 até n faça
+    x := (i * 640) - 640
+    fundo.desenhe(x, 0, 0)
+  fim
+fim
+
+temNuvem(px, py: Inteiro, nuvens: Lista[Nuvem])
+  var conte_v := 0
+  para nuvem em nuvens faça
+    se (px > (nuvem.x - 80) e px < (nuvem.x + 80)) e (py > (nuvem.y - 40) e py < (nuvem.y + 60)) então
+      conte_v := conte_v + 1
+    fim
+  fim
+  se conte_v > 0 então
+    verdadeiro
+  senão
+    falso
+  fim
+fim
+
+criaNuvens(n: Inteiro)
+ var plus_x = aleatório(56, 112)
+ var plus_y = aleatório(38, 75)
+ var nuvens = Lista(1, Nuvem())
+ para i de 1 até n faça
+   #escreva i
+   var nova = Nuvem()
+   se temNuvem(nuvens[i].x, nuvens[i].y, nuvens) então
+     nova.muda_x(aleatório(56, 112))
+     nova.muda_y(aleatório(38, 75))
+   fim
+  se nova.x > 0 e nova.x < 110 então nova.muda_x(plus_x) fim
+  se nova.y > 320 e nova.y < 425 então nova.muda_y(plus_y) fim
+  nuvens := nova::nuvens
+ fim
+ nuvens
+fim
+
+desenhaNuvens(nuvens: Lista[Nuvem])
+  para nuvem em nuvens faça
+    nuvem.imagem.desenhe(nuvem.x, nuvem.y, 2)
+  fim
+fim
+
+passaros = Imagem("my_codes/jogo/img/passarinho_invertido.png")
+passaro = passaros.fatie(112, 75)
+var passaro_x := 530
+var passaro_y := 5
+var nuvens = criaNuvens(25)
+var i := 1.0
+var estado := "JOGANDO"
+
+desenhe()
+  #fundo.desenhe(560, 0, 0)
+  desenhaFase(2)
+  ninho.desenhe(0, 310, 1)
+  desenhaNuvens(nuvens)
+  passaro[i.inteiro].desenhe(passaro_x, passaro_y, 2)
+  escreva "{passaro_x}, {passaro_y}"
+  # Estado: fim do jogo
+  se estado == "FIM" então
+    fonte = Fonte(20)
+    msg = "FIM DE JOGO, VOCE CHEGOU"
+    fonte.desenhe_centralizado(msg, jogo.largura / 2, jogo.altura / 2, 3, Cor.AMARELO)
+  fim
+fim
+
+# Estado: JOGANDO
+atualize_jogando()
+  # eventos
+  i := i + 0.2
+  se i >= 8 então
+    i := 1.0
+  fim
+  se Teclado.TECLA_PARA_DIREITA então
+    se não temNuvem(passaro_x + 10, passaro_y, nuvens) então
+      passaro_x := passaro_x + 10
+    fim
+    #passaro_x := passaro_x + 10
+    se passaro_x > jogo.largura - 110 então
+      passaro_x := jogo.largura - 110
+    fim
+  fim
+  se Teclado.TECLA_PARA_ESQUERDA então
+    se não temNuvem(passaro_x - 10, passaro_y, nuvens) então
+      passaro_x := passaro_x - 10
+    fim
+    #passaro_x := passaro_x - 10
+    se passaro_x < 10 então
+      passaro_x := 10
+    fim
+  fim
+  se Teclado.TECLA_PARA_BAIXO então
+    se não temNuvem(passaro_x, passaro_y + 10, nuvens) então
+      passaro_y := passaro_y + 10
+    fim
+    #passaro_y := passaro_y + 10
+    se passaro_y > jogo.altura - 70 então
+      passaro_y := jogo.altura - 70
+    fim
+  fim
+  se Teclado.TECLA_PARA_CIMA então
+    se não temNuvem(passaro_x, passaro_y - 10, nuvens) então
+      passaro_y := passaro_y - 10
+    fim
+    #passaro_y := passaro_y - 10
+    se passaro_y < 5 então
+      passaro_y := 5
+    fim
+  fim
+  se passaro_x > 0 e passaro_x < 110 e passaro_y > 320 e passaro_y < 425 então
+    passaro_x := 30
+    passaro_y := 340
+    estado := "FIM"
+  fim
+fim
+
+atualize_fim()
+fim
+
+atualize()
+  escolha estado
+    caso "JOGANDO" => atualize_jogando
+    caso "FIM" => atualize_fim
+  fim
+fim
+
+jogo.iniciar("Nest", 1080, 425, atualize, desenhe)

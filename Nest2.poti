@@ -1,0 +1,176 @@
+use "jerimum".
+
+## Tipos
+tipo Nuvem
+  imagem = Imagem("my_codes/jogo/img/nuvem.png")
+  var x:= aleatório(200, 700)
+  var y:= aleatório(425)
+  mover()
+    x:= x - 1
+  fim
+  recarregar()
+    x:= aleatório(700, 800)
+    y:= aleatório(10, 400)
+  fim
+fim
+
+tipo Personagem
+  imagens = Imagem("my_codes/jogo/img/passarinho.png")
+  imagem = imagens.fatie(112, 75)
+  var x_atual:= 0
+  var y_atual:= 0
+  mude_x(novo_x: Inteiro)
+    x_atual:= novo_x
+  fim
+  mude_y(novo_y: Inteiro)
+    y_atual:= novo_y
+  fim
+  carrega(i, x, y: Inteiro)
+    x_atual:= x
+    y_atual:= y
+    imagem[i].desenhe(x_atual, y_atual, 2)
+  fim
+fim
+
+## Funções de Apoio
+# Cria n nuvens
+criaNuvens(n: Inteiro)
+  var nuvens = Lista(1, Nuvem())
+  para i de 1 até n faça
+    #escreva i
+    var nova = Nuvem()
+    nuvens:= nova::nuvens
+  fim
+  nuvens
+fim
+# Desenha todas as nuvens na tela
+desenhaNuvens(nuvens: Lista[Nuvem])
+  para nuvem em nuvens faça
+    se nuvem.x < 0 então
+      nuvem.recarregar()
+    fim
+    nuvem.imagem.desenhe(nuvem.x, nuvem.y, 3)
+  fim
+fim
+# Testa se tem nuvem
+temNuvem(px, py: Inteiro, nuvens: Lista[Nuvem])
+  var conta_nuvens = 0
+  para nuvem em nuvens faça
+    se (px > (nuvem.x - 80) e px < (nuvem.x + 80)) e (py > (nuvem.y - 40) e py < (nuvem.y + 60)) então
+      conta_nuvens:= conta_nuvens + 1
+    fim
+  fim
+  se conta_nuvens > 0 então
+    verdadeiro
+  senão
+    falso
+  fim
+fim
+# Move as nuvens e o personagem se estiver na frente da nuvem
+moverNuvens(nuvens: Lista[Nuvem])
+  para nuvem em nuvens faça
+    nuvem.mover()
+    escreva nuvem.x
+  fim
+fim
+
+## Variáveis do Jogo
+var i = 1.0
+var estado = "JOGANDO"
+var resultado = ""
+var nuvens = criaNuvens(10)
+var distancia_ninho = 1500
+var tempo = 30.0
+var cor_msg:= Cor.BRANCO
+var msg = ""
+contador = Fonte(15)
+fundo = Imagem("my_codes/jogo/img/ceu.png")
+ninho = Imagem("my_codes/jogo/img/ninho.png")
+passaro = Personagem()
+passaro.mude_y((jogo.altura / 2).inteiro)
+
+# Estado: JOGANDO
+atualize_jogando()
+  # Controla o TEMPO
+  se tempo > 0 então tempo:= tempo - 0.0167 fim
+  # Controla a distância do ninho
+  se distancia_ninho > 500 então distancia_ninho:= distancia_ninho - 1 fim
+  # Controla a mudança do sprite do personagem
+  i:= i + 0.2
+  se i >= 8 então i:= 1.0 fim
+  # Movendo as nuvens
+  moverNuvens(nuvens)
+  # Eventos de Movimento
+  se Teclado.TECLA_PARA_BAIXO então
+    se não temNuvem(passaro.x_atual, passaro.y_atual + 10, nuvens) e (passaro.y_atual + 10 <= jogo.altura - 70) então
+      passaro.mude_y(passaro.y_atual + 10)
+    fim
+  fim
+  se Teclado.TECLA_PARA_CIMA então
+    se não temNuvem(passaro.x_atual, passaro.y_atual - 10, nuvens) e (passaro.y_atual - 10 >= 10) então
+      passaro.mude_y(passaro.y_atual - 10)
+    fim
+  fim
+  se Teclado.TECLA_PARA_DIREITA então
+    se não temNuvem(passaro.x_atual + 10, passaro.y_atual, nuvens) e (passaro.x_atual + 10 < jogo.largura - 100) então
+      passaro.mude_x(passaro.x_atual + 10)
+    fim
+  fim
+  se Teclado.TECLA_PARA_ESQUERDA então
+    se não temNuvem(passaro.x_atual - 10, passaro.y_atual, nuvens) e (passaro.x_atual - 10 > 5) então
+      passaro.mude_x(passaro.x_atual - 10)
+    fim
+  fim
+  # Término do jogo
+  se tempo.inteiro == 0 então
+    resultado:= "PERDEU"
+    estado:= "FIM"
+  senão
+    se (distancia_ninho == 500) e (passaro.x_atual > 500 e passaro.x_atual < 540) e (passaro.y_atual > 300 e passaro.y_atual < 425) então
+      passaro.carrega(1, 540, 340)
+      resultado:= "VENCEU"
+      estado:= "FIM"
+    fim
+  fim
+fim
+
+# Termina o jogo
+atualize_fim()
+fim
+
+## Programa Principal
+# Desenha os elementos do jogo
+desenhe()
+  # Desenha mensagem do fim de jogo
+  se estado == "FIM" então
+    # Resultado do jogo
+    se resultado == "VENCEU" então
+      msg:= "PARABÉNS, VOCE CHEGOU AO NINHO EM {30 - tempo.inteiro} SEGUNDOS!"
+      cor_msg:= Cor.AZUL
+    fim
+    se resultado == "PERDEU" então
+      msg:= "FIM DE JOGO, VOCE NÃO CHEGOU AO NINHO!"
+      cor_msg:= Cor.VERMELHO
+    fim
+    fonte = Fonte(20)
+    fonte.desenhe_centralizado(msg, jogo.largura / 2, jogo.altura / 2, 4, cor_msg)
+  fim
+  # Desenha o resto do jogo
+  fundo.desenhe(0, 0, 0)
+  ninho.desenhe(distancia_ninho, 310, 1)
+  desenhaNuvens(nuvens)
+  passaro.carrega(i.inteiro, passaro.x_atual, passaro.y_atual)
+  contador.desenhe("TEMPO:{tempo.inteiro} segundos", 0, 20, 4, cor_msg)
+  #escreva "{passaro.x_atual}, {passaro.y_atual}, {distancia_ninho}, {tempo}, {estado}, {resultado}"
+fim
+
+# Atualiza os elementos do jogo
+atualize()
+  escolha estado
+    caso "JOGANDO" => atualize_jogando()
+    caso "FIM" => atualize_fim()
+  fim
+fim
+
+## Jogo
+jogo.iniciar("Nest", 640, 425, atualize, desenhe)
