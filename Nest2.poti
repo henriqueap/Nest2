@@ -2,7 +2,7 @@ use "jerimum".
 
 ## Tipos
 tipo Nuvem
-  imagem = Imagem("my_codes/jogo/img/nuvem.png")
+  imagem = Imagem("img/nuvem.png")
   var x:= aleatório(200, 700)
   var y:= aleatório(425)
   mover()
@@ -15,7 +15,7 @@ tipo Nuvem
 fim
 
 tipo Personagem
-  imagens = Imagem("my_codes/jogo/img/passarinho.png")
+  imagens = Imagem("img/passarinho.png")
   imagem = imagens.fatie(112, 75)
   var x_atual:= 0
   var y_atual:= 0
@@ -84,8 +84,8 @@ var tempo = 30.0
 var cor_msg:= Cor.BRANCO
 var msg = ""
 contador = Fonte(15)
-fundo = Imagem("my_codes/jogo/img/ceu.png")
-ninho = Imagem("my_codes/jogo/img/ninho.png")
+fundo = Imagem("img/ceu.png")
+ninho = Imagem("img/ninho.png")
 passaro = Personagem()
 passaro.mude_y((jogo.altura / 2).inteiro)
 
